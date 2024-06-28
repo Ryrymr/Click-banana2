@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Click na Banana</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f3f4f6, #e2e8f0);
+            color: #333;
+        }
+        h1 {
+            color: #ffcc00;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px #aaa;
+        }
+        .game-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .game-container input, .game-container button {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .banana {
+            cursor: pointer;
+            width: 150px;
+            height: auto;
+            display: none;
+            margin: 20px 0;
+        }
+        .count {
+            font-size: 2em;
+            margin: 20px 0;
+            color: #ff5722;
+        }
+        .ranking {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .ranking table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .ranking th, .ranking td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .ranking th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jogo de Click na Banana</h1>
+    <div class="game-container">
+        <div>
+            <label for="playerName">Nome do Jogador:</label>
+            <input type="text" id="playerName">
+            <button onclick="startGame()">Iniciar Jogo</button>
+        </div>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" alt="Banana" class="banana" onclick="incrementCount()">
+        <div class="count">Cliques: <span id="clickCount">0</span></div>
+    </div>
+
+    <div class="ranking">
+        <h2>Ranking</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Posição</th>
+                    <th>Nome</th>
+                    <th>Pontuação</th>
+                </tr>
+            </thead>
+            <tbody id="rankingTable">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let clickCount = 0;
+        let playerName = '';
+        let players = JSON.parse(localStorage.getItem('players')) || [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRanking();
+        });
+
+        function startGame() {
+            playerName = document.getElementById('playerName').value;
+            if (playerName.trim() === '') {
+                alert('Por favor, insira seu nome.');
+                return;
+            }
+            clickCount = 0;
+            document.getElementById('clickCount').innerText = clickCount;
+            document.querySelector('.banana').style.display = 'block';
+        }
+
+        function incrementCount() {
+            if (playerName.trim() === '') {
+                alert('Por favor, insira seu nome e inicie o jogo.');
+                return;
+            }
+            clickCount++;
+            document.getElementById('clickCount').innerText = clickCount;
+            updateRanking();
+        }
+
+        function updateRanking() {
+            let playerFound = false;
+
+            for (let i = 0; i < players.length; i++) {
+                if (players[i].name === playerName) {
+                    players[i].score = Math.max(players[i].score, clickCount);
+                    playerFound = true;
+                    break;
+                }
+            }
+
+            if (!playerFound) {
+                players.push({ name: playerName, score: clickCount });
+            }
+
+            players.sort((a, b) => b.score - a.score);
+            localStorage.setItem('players', JSON.stringify(players));
+            loadRanking();
+        }
+
+        function loadRanking() {
+            let rankingTable = document.getElementById('rankingTable');
+            rankingTable.innerHTML = '';
+
+            for (let i = 0; i < players.length; i++) {
+                let newRow = rankingTable.insertRow();
+                let posCell = newRow.insertCell(0);
+                let nameCell = newRow.insertCell(1);
+                let scoreCell = newRow.insertCell(2);
+
+                posCell.innerText = i + 1;
+                nameCell.innerText = players[i].name;
+                scoreCell.innerText = players[i].score;
+            }
+        }
+    </script>
+</body>
+</html>
